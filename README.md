@@ -43,7 +43,7 @@ dotfiles/
 Run the bootstrap script on a fresh machine:
 
 ```bash
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/<username>/dotfiles/main/bootstrap.sh)"
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/techpg22/dotfiles/main/bootstrap.sh)"
 ```
 
 The script will:

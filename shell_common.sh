@@ -2,29 +2,26 @@
 [ -n "$DOTFILES_LOADED" ] && return
 export DOTFILES_LOADED=1
 
-DOTFILES_DIR="$HOME/dotfiles"
+export DOTFILES_DIR="$HOME/dotfiles"
 
 # -------------------------
 # Shell auto-detection
 # -------------------------
 if [ -n "$BASH_VERSION" ]; then
-  SHELL_TYPE="bash"
+  export DOTFILES_SHELL="bash"
 elif [ -n "$ZSH_VERSION" ]; then
-  SHELL_TYPE="zsh"
+  export DOTFILES_SHELL="zsh"
 else
-  SHELL_TYPE="unknown"
+  export DOTFILES_SHELL="unknown"
 fi
 
 # Load shell-specific behavior
-SHELL_FILE="$DOTFILES_DIR/shells/$SHELL_TYPE.sh"
+SHELL_FILE="$DOTFILES_DIR/shells/$DOTFILES_SHELL.sh"
 [ -f "$SHELL_FILE" ] && . "$SHELL_FILE"
 
 # -------------------------
 # Role detection
 # -------------------------
-ROLE_FILE="$HOME/.dotfiles_role"
-
-# Read roles file
 if [ -f "$HOME/.dotfiles_roles" ]; then
   IFS=',' read -ra ROLE_LIST < "$HOME/.dotfiles_roles"
   for ROLE in "${ROLE_LIST[@]}"; do
