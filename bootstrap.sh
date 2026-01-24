@@ -4,14 +4,14 @@ set -e
 
 # --- Configuration ---
 DOTFILES_DIR="$HOME/dotfiles"
-REPO_URL="git@github.com:<your-username>/dotfiles.git"
+REPO_URL="git@github.com:techpg22/dotfiles.git"
 
 SHELL_COMMON="$HOME/.shell_common"
 BASH_EXTRAS="$HOME/.bash_extras"
 ZSH_EXTRAS="$HOME/.zsh_extras"
 ROLES_FILE="$HOME/.dotfiles_roles"
 
-PRIMARY_ROLES=("server" "workstation" "laptop")
+PRIMARY_ROLES=("server" "laptop")
 
 # --- Clone or update repository ---
 if [ ! -d "$DOTFILES_DIR/.git" ]; then
