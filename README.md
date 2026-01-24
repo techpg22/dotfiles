@@ -1,130 +1,151 @@
-# Dotfiles – Portable Shell Enhancements
+```
+# Dotfiles
 
-This repository contains non-invasive shell enhancements designed to layer on top of existing system and user shell configurations without overriding them.
-
-The goal is:
-- Portability across servers, laptops, and workstations
-- Zero replacement of .bashrc, .bash_profile, or .zshrc
-- Explicit opt-in loading
-- Git-tracked, symlink-friendly configuration
+A modular dotfiles setup for managing shell enhancements, roles, and machine-specific configurations across multiple systems.
 
 ---
 
-## Philosophy
+## Features
 
-- Core shell files remain local
-- Enhancements live in git
-- Enhancements are sourced conditionally
-- Nothing is auto-loaded unless explicitly enabled
-
-This mirrors how Linux distributions structure shell configuration.
+- Single-source shell enhancements (`shell_common.sh`) for bash/zsh
+- Modular shell extras (`bash.sh`, `zsh.sh`)
+- Role-based configuration:
+  - Primary roles: `server`, `workstation`, `laptop`
+  - Optional feature roles: `docker`, `git`, `monitoring`, etc.
+- Safe symlinks — does not overwrite existing `.bashrc` or `.zshrc`
+- Bootstrap script for quick setup on new machines
+- Host-specific configuration support (stubbed via `hosts/<hostname>.sh`)
 
 ---
 
 ## Repository Structure
 
+```
 dotfiles/
-├── shell_common.sh     # Shared enhancements (bash + zsh)
-├── bash_extras.sh      # Bash-specific behavior
-├── zsh_extras.sh       # Zsh-specific behavior
-├── hosts/              # Host-specific overrides
-│   └── example.sh
+├── bootstrap.sh         # Bootstrap script to setup dotfiles on a new machine
+├── shell_common.sh      # Common shell enhancements and role loader
+├── shells/
+│   ├── bash.sh          # Bash-specific enhancements
+│   └── zsh.sh           # Zsh-specific enhancements
+├── roles/
+│   ├── server.sh        # Server-specific aliases, env vars, etc.
+│   ├── workstation.sh   # Workstation-specific settings
+│   ├── laptop.sh        # Laptop-specific settings
+│   ├── docker.sh        # Optional Docker role
+│   └── git.sh           # Optional Git role (aliases + gitconfig)
+├── hosts/               # Host-specific configuration stubs
 └── README.md
+```
 
 ---
 
-## What Each File Does
+## Bootstrap Setup
 
-shell_common.sh
-- Loaded by all shells
-- Contains:
-  - Shared aliases
-  - Functions
-  - PATH updates
-  - Tooling helpers
-- POSIX-compatible
-- Guarded against multiple loads
+Run the bootstrap script on a fresh machine:
 
-bash_extras.sh
-- Loaded only in bash
-- Contains:
-  - shopt settings
-  - Bash-only behavior
-  - Bash-specific helpers
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/<username>/dotfiles/main/bootstrap.sh)"
+```
 
-zsh_extras.sh
-- Loaded only in zsh
-- Contains:
-  - setopt options
-  - Zsh-specific behavior
-  - Zsh-only helpers
+The script will:
 
-hosts/<hostname>.sh
-- Optional per-host overrides
-- Automatically loaded if present
-- Keeps host-specific logic out of shared files
+1. Clone or pull the dotfiles repo into `~/dotfiles`
+2. Create safe symlinks for:
+   - `~/.shell_common`
+   - `~/.bash_extras`
+   - `~/.zsh_extras`
+3. Prompt you to select:
+   - **Primary role** (server/workstation/laptop)
+   - **Optional feature roles** (docker, git, monitoring, etc.)
+4. Write your role selections to `~/.dotfiles_roles`
+5. (Optional) Set default editor: `EDITOR=vim`, `VISUAL=vim`
+
+> The script is idempotent — safe to run multiple times.
 
 ---
 
-## Installation (Safe & Non-Invasive)
+## Shell Configuration
 
-1. Clone the repository
+Ensure your shell config sources the enhancements:
 
-git clone git@github.com:<your-username>/dotfiles.git ~/dotfiles
+**Bash (`~/.bashrc`):**
 
-2. Create symlinks to enhancement files
-
-ln -s ~/dotfiles/shell_common.sh ~/.shell_common
-ln -s ~/dotfiles/bash_extras.sh ~/.bash_extras
-ln -s ~/dotfiles/zsh_extras.sh ~/.zsh_extras
-
-These files are inert unless sourced.
-
----
-
-## Enabling Enhancements
-
-Bash
-
-Add the following to ~/.bashrc:
-
+```bash
 [ -f ~/.shell_common ] && . ~/.shell_common
 [ -f ~/.bash_extras ] && . ~/.bash_extras
+```
 
-Zsh
+**Zsh (`~/.zshrc`):**
 
-Add the following to ~/.zshrc:
-
+```bash
 [ -f ~/.shell_common ] && source ~/.shell_common
 [ -f ~/.zsh_extras ] && source ~/.zsh_extras
+```
+
+`shell_common.sh` will:
+
+- Detect your shell (bash vs zsh)
+- Load the shell extras
+- Load all roles from `~/.dotfiles_roles`
+- Optionally load host-specific configs from `hosts/<hostname>.sh`
 
 ---
 
-## Host-Specific Configuration
+## Roles
 
-Create a file named after the host:
+- **Primary roles:** machine type, required
+- **Optional roles:** feature-based, selected by user at bootstrap
+- Roles contain aliases, functions, and environment variables, e.g., git configuration, docker helpers
 
-~/dotfiles/hosts/$(hostname -s).sh
+**Example `~/.dotfiles_roles` after bootstrap:**
 
-Example:
-
-alias disks='lsblk -o NAME,SIZE,MOUNTPOINT'
-
-This file will be loaded automatically if it exists.
-
----
-
-## Turning Enhancements Off
-
-Simply comment out or remove the source lines in .bashrc or .zshrc.
-
-No files need to be deleted.
+```
+server,docker,git
+```
 
 ---
 
-## Compatibility
+## Host-specific Configs (Optional)
 
-- Works with SSH
-- Works with VS Code Remote SSH
-- Works with login and non-login shells
-- Compatible with future dotfile managers (e.g. chezmoi)
+You can create host-specific files in `hosts/`:
+
+```
+hosts/myserver.sh
+```
+
+- These files are sourced automatically by `shell_common.sh`
+- Useful for machine-specific environment variables or overrides
+
+---
+
+## Git Role Example
+
+- Sets global Git aliases and environment variables:
+
+```bash
+git config --global alias.st "status -sb"
+git config --global alias.co "checkout"
+git config --global alias.ci "commit"
+git config --global alias.br "branch"
+git config --global alias.lg "log --graph --oneline --decorate --all"
+```
+
+- Can also export `GIT_AUTHOR_NAME` and `GIT_AUTHOR_EMAIL`
+
+---
+
+## Extending
+
+- Add new feature roles by creating `roles/<role>.sh`
+- Optional roles automatically appear in bootstrap prompt
+- Host-specific configs are automatically sourced if `hosts/<hostname>.sh` exists
+
+---
+
+## Notes
+
+- Bootstrap script requires `git` to clone the repo
+- Safe symlinks ensure existing shell configs are not overridden
+- Roles and extras are shell-agnostic and portable
+- The setup works on bash, zsh, or any POSIX-compliant shell
+```
