@@ -1,4 +1,3 @@
-```
 # Dotfiles
 
 A modular dotfiles setup for managing shell enhancements, roles, and machine-specific configurations across multiple systems.
@@ -148,4 +147,3 @@ git config --global alias.lg "log --graph --oneline --decorate --all"
 - Safe symlinks ensure existing shell configs are not overridden
 - Roles and extras are shell-agnostic and portable
 - The setup works on bash, zsh, or any POSIX-compliant shell
-```
