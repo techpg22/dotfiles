@@ -16,8 +16,11 @@ add_git_alias() {
 }
 
 # Example aliases
+add_git_alias a "add ."
 add_git_alias st "status"
 add_git_alias co "checkout"
 add_git_alias cob "checkout -b"
 add_git_alias c "commit -m"
 add_git_alias lg "log --graph --oneline --decorate --all"
+add_git_alias pl "pull"
+add_git_alias p "push"
