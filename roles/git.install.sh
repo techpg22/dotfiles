@@ -3,7 +3,7 @@ set -e
 
 command -v git >/dev/null 2>&1 || {
   echo "git not installed, skipping git role install"
-  exit 0
+  return 0
 }
 
 
