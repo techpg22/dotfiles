@@ -26,7 +26,7 @@ if [ -f "$HOME/.dotfiles_roles" ]; then
   IFS=',' read -ra ROLE_LIST < "$HOME/.dotfiles_roles"
   for ROLE in "${ROLE_LIST[@]}"; do
     ROLE_SCRIPT="$DOTFILES_DIR/roles/$ROLE.sh"
-    [ -f "$ROLE_SCRIPT" ] && (. "$ROLE_SCRIPT")
+    [ -f "$ROLE_SCRIPT" ] && . "$ROLE_SCRIPT"
   done
 fi
 

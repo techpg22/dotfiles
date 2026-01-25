@@ -105,7 +105,9 @@ fi
 # Write role file
 # -------------------------
 ALL_ROLES=("$PRIMARY_ROLE" "${SELECTED_OPTIONAL_ROLES[@]}")
-IFS=',' echo "${ALL_ROLES[*]}" > "$ROLE_FILE"
+
+ROLE_STRING=$(IFS=','; echo "${ALL_ROLES[*]// /}")
+echo "$ROLE_STRING" > "$ROLE_FILE"
 
 echo
 echo "Roles saved to $ROLE_FILE:"
