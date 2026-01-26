@@ -1,27 +1,31 @@
 #!/usr/bin/env bash
 set -e
 
+# =========================
+# Configuration
+# =========================
 DOTFILES_DIR="$HOME/dotfiles"
 ROLES_DIR="$DOTFILES_DIR/roles"
+INSTALL_DIR="$DOTFILES_DIR/install"
 ROLE_FILE="$HOME/.dotfiles_roles"
 
-PRIMARY_ROLES=("server" "workstation" "laptop")
+PRIMARY_ROLES=("server" "laptop")
 
 echo "== Dotfiles Bootstrap =="
 
-# -------------------------
-# Ensure dotfiles directory
-# -------------------------
+# =========================
+# Ensure dotfiles repo
+# =========================
 if [ ! -d "$DOTFILES_DIR" ]; then
-  echo "Cloning dotfiles repo..."
+  echo "Cloning dotfiles repository..."
   git clone https://github.com/techpg22/dotfiles.git "$DOTFILES_DIR"
 else
-  echo "Dotfiles directory exists."
+  echo "Dotfiles directory already exists."
 fi
 
-# -------------------------
-# Create safe symlinks
-# -------------------------
+# =========================
+# Safe symlink helper
+# =========================
 link_if_missing() {
   local target="$1"
   local link="$2"
@@ -35,13 +39,22 @@ link_if_missing() {
   echo "Linked $link → $target"
 }
 
+echo
+echo "Creating symlinks..."
+
 link_if_missing "$DOTFILES_DIR/shell_common.sh" "$HOME/.shell_common"
 link_if_missing "$DOTFILES_DIR/shells/bash.sh" "$HOME/.bash_extras"
 link_if_missing "$DOTFILES_DIR/shells/zsh.sh" "$HOME/.zsh_extras"
 
-# -------------------------
-# Select primary role
-# -------------------------
+# =========================
+# Optional installer run
+# =========================
+echo
+read -rp "Run system installers now? (y/n): " RUN_INSTALLS
+
+# =========================
+# Primary role selection
+# =========================
 echo
 echo "Select primary role:"
 for i in "${!PRIMARY_ROLES[@]}"; do
@@ -57,14 +70,14 @@ while true; do
   echo "Invalid selection. Try again."
 done
 
-# -------------------------
+# =========================
 # Build optional roles list
-# -------------------------
+# =========================
 OPTIONAL_ROLES=()
+
 for file in "$ROLES_DIR"/*.sh; do
   role="$(basename "$file" .sh)"
 
-  # Skip primary roles
   if [[ " ${PRIMARY_ROLES[*]} " == *" $role "* ]]; then
     continue
   fi
@@ -74,9 +87,9 @@ done
 
 SELECTED_OPTIONAL_ROLES=()
 
-# -------------------------
-# Select optional roles
-# -------------------------
+# =========================
+# Optional role selection
+# =========================
 if [ "${#OPTIONAL_ROLES[@]}" -gt 0 ]; then
   echo
   echo "Optional roles:"
@@ -90,7 +103,7 @@ if [ "${#OPTIONAL_ROLES[@]}" -gt 0 ]; then
     IFS=',' read -ra INDICES <<< "$OPT_INPUT"
 
     for idx in "${INDICES[@]}"; do
-      idx="$(echo "$idx" | xargs)" # trim
+      idx="$(echo "$idx" | xargs)"
       if [[ "$idx" =~ ^[0-9]+$ ]] && (( idx >= 1 && idx <= ${#OPTIONAL_ROLES[@]} )); then
         SELECTED_OPTIONAL_ROLES+=("${OPTIONAL_ROLES[$((idx-1))]}")
       else
@@ -101,41 +114,57 @@ if [ "${#OPTIONAL_ROLES[@]}" -gt 0 ]; then
   fi
 fi
 
-# -------------------------
-# Write role file
-# -------------------------
+# =========================
+# Write roles file
+# =========================
 ALL_ROLES=("$PRIMARY_ROLE" "${SELECTED_OPTIONAL_ROLES[@]}")
-
-ROLE_STRING=$(IFS=','; echo "${ALL_ROLES[*]// /}")
+ROLE_STRING=$(IFS=','; echo "${ALL_ROLES[*]}")
 echo "$ROLE_STRING" > "$ROLE_FILE"
 
 echo
 echo "Roles saved to $ROLE_FILE:"
 cat "$ROLE_FILE"
 
-# -------------------------
-# Run role install scripts
-# -------------------------
-echo
-for role in "${ALL_ROLES[@]}"; do
-  INSTALL_SCRIPT="$ROLES_DIR/$role.install.sh"
-  if [ -f "$INSTALL_SCRIPT" ]; then
-    echo "Running install for role: $role"
-    bash "$INSTALL_SCRIPT"
-  fi
-done
+# =========================
+# Run installers (role-based)
+# =========================
+if [[ "$RUN_INSTALLS" =~ ^[Yy]$ ]]; then
+  echo
+  echo "Running installers for selected roles..."
 
-# -------------------------
+  for role in "${ALL_ROLES[@]}"; do
+    INSTALL_SCRIPT="$INSTALL_DIR/$role.install.sh"
+
+    if [ -f "$INSTALL_SCRIPT" ]; then
+      echo "→ Running installer for role: $role"
+      bash "$INSTALL_SCRIPT"
+    else
+      echo "→ No installer for role: $role (skipping)"
+    fi
+  done
+else
+  echo
+  echo "Installers skipped."
+  echo "Run later with:"
+  echo "  bash ~/dotfiles/install/<role>.install.sh"
+fi
+
+# =========================
 # Editor defaults
-# -------------------------
+# =========================
+echo
 read -rp "Set default editor to vim? (y/n): " SET_EDITOR
 if [[ "$SET_EDITOR" =~ ^[Yy]$ ]]; then
   if ! grep -q "EDITOR=" "$HOME/.profile" 2>/dev/null; then
-    echo 'export EDITOR=vim' >> "$HOME/.profile"
-    echo 'export VISUAL=vim' >> "$HOME/.profile"
+    {
+      echo 'export EDITOR=vim'
+      echo 'export VISUAL=vim'
+    } >> "$HOME/.profile"
+    echo "Editor defaults set in ~/.profile"
   fi
 fi
 
 echo
 echo "Bootstrap complete."
-echo "Restart your shell or run: exec \$SHELL"
+echo "Restart your shell or run:"
+echo "  exec \$SHELL"
