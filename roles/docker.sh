@@ -5,6 +5,13 @@ alias dcpl="docker compose pull"
 alias dpsf="docker ps --format 'table {{.ID}}\t{{.Names}}\t{{.Status}}\t{{.Ports}}'"
 alias dst="docker stats"
 alias dstn="docker stats --no-stream"
+alias di="docker images"
+alias did="docker images -f 'dangling=true'"
+alias didf="docker images --filter 'dangling=true' --format 'table {{.ID}}\t{{.Size}}\t{{.CreatedAt}}'"
+alias dip="docker image prune"
+alias dipa="docker image prune -a"
+alias dsp="docker system prune"
+alias dsdf="docker system df"
 
 dcudproj() {
   docker compose --project-directory "$1" up -d
