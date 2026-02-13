@@ -12,6 +12,8 @@ alias dip="docker image prune"
 alias dipa="docker image prune -a"
 alias dsp="docker system prune"
 alias dsdf="docker system df"
+alias dstop="docker stop"
+alias drm="docker rm"
 
 dcudproj() {
   docker compose --project-directory "$1" up -d
